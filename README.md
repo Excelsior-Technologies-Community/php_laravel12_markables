@@ -1,7 +1,5 @@
 # php_laravel12_markables
 
-# php_laravel12_markables
-
 ## Project Introduction
 
 php_laravel12_markables is a Laravel 12 demonstration project that showcases how to implement a flexible marking system—such as Likes, Bookmarks, Favorites, and Reactions—using the maize-tech/laravel-markable package.
@@ -606,6 +604,7 @@ http://127.0.0.1:8000/posts
 
 ## Output
 
+![alt text](<Screenshot 2026-02-26 172129.png>)
 
 ---
 
