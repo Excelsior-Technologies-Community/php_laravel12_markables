@@ -604,7 +604,7 @@ http://127.0.0.1:8000/posts
 
 ## Output
 
-![alt text](<Screenshot 2026-02-26 172129.png>)
+<img width="1902" height="1023" alt="Screenshot 2026-02-26 172129" src="https://github.com/user-attachments/assets/e555d3f6-9b39-4919-92b1-e400b8649773" />
 
 ---
 
