@@ -655,5 +655,8 @@ php_laravel12_markables/
 ---
 
 Your php_laravel12_markables Project is now ready!
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> development
