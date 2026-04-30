@@ -1,44 +1,54 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Reactions\Wow;
 use App\Models\Post;
 use Illuminate\Http\Request;
-use App\Models\User;
 
 class PostController extends Controller
 {
-    public function index()
+    // 📌 List + Search + Pagination
+    public function index(Request $request)
     {
-        return view('posts.index', ['posts' => Post::all()]);
+        $query = Post::query();
+
+        if ($request->search) {
+            $query->where('title', 'LIKE', "%{$request->search}%")
+                ->orWhere('body', 'LIKE', "%{$request->search}%");
+        }
+
+        $posts = $query->latest()->paginate(3);
+
+        return view('posts.index', compact('posts'));
     }
 
-    public function show(Post $post)
-    {
-        return view('posts.show', compact('post'));
-    }
-
-    public function bookmark(Post $post)
-    {
-        $post->mark('bookmark', auth()->user());
-        return redirect()->back();
-    }
-
+    // 📌 Toggle Like
     public function like(Post $post)
     {
-        $post->mark('like', auth()->user());
-        return redirect()->back();
+        $status = $post->toggleMark('like', auth()->user());
+        return back()->with('success', $status ? 'Liked!' : 'Unliked!');
     }
 
+    // 📌 Toggle Favorite
     public function favorite(Post $post)
     {
-        $post->mark('favorite', auth()->user());
-        return redirect()->back();
+        $status = $post->toggleMark('favorite', auth()->user());
+        return back()->with('success', $status ? 'Added to favorites' : 'Removed from favorites');
     }
 
+    // 📌 Toggle Bookmark
+    public function bookmark(Post $post)
+    {
+        $status = $post->toggleMark('bookmark', auth()->user());
+        return back()->with('success', $status ? 'Bookmarked' : 'Removed bookmark');
+    }
+
+    // 📌 Reaction
     public function react(Request $request, Post $post)
     {
-        $post->mark($request->type, auth()->user());
-        return redirect()->back();
+        $post->toggleMark(Wow::class, auth()->user());
+
+        return back()->with('success', 'Reaction updated!');
     }
+
 }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
+    
     protected $fillable = ['title', 'body'];
 
     public function marks()
@@ -13,16 +14,33 @@ class Post extends Model
         return $this->hasMany(Mark::class);
     }
 
-    public function marksByType($type)
+    // ✅ Toggle Mark
+    public function toggleMark($type, $user)
     {
-        return $this->marks()->where('type', $type);
+        $existing = $this->marks()
+            ->where('user_id', $user->id)
+            ->where('type', $type)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            return false;
+        }
+
+        $this->marks()->create([
+            'user_id' => $user->id,
+            'type' => $type
+        ]);
+
+        return true;
     }
 
-    public function mark($type, $user)
+    // ✅ Check if marked
+    public function isMarkedByUser($type, $userId)
     {
-        return $this->marks()->updateOrCreate(
-            ['user_id' => $user->id, 'type' => $type],
-            ['post_id' => $this->id]
-        );
+        return $this->marks()
+            ->where('type', $type)
+            ->where('user_id', $userId)
+            ->exists();
     }
 }
