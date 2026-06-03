@@ -1,54 +1,65 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Reactions\Wow;
+
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class PostController extends Controller
 {
-    // 📌 List + Search + Pagination
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $query = Post::query();
+        $query = Post::with('marks');
 
-        if ($request->search) {
-            $query->where('title', 'LIKE', "%{$request->search}%")
-                ->orWhere('body', 'LIKE', "%{$request->search}%");
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'LIKE', "%{$request->search}%")
+                  ->orWhere('body', 'LIKE', "%{$request->search}%");
+            });
         }
 
-        $posts = $query->latest()->paginate(3);
+        if ($request->sort === 'most_liked') {
+            $query->withCount('marks')->orderBy('marks_count', 'desc');
+        } else {
+            $query->latest();
+        }
+
+        $posts = $query->paginate(3);
 
         return view('posts.index', compact('posts'));
     }
 
-    // 📌 Toggle Like
-    public function like(Post $post)
+    public function dashboard(): View
+    {
+        $user = Auth::user();
+
+        $stats = [
+            'likes'     => $user->marks()->where('type', 'like')->count(),
+            'bookmarks' => $user->marks()->where('type', 'bookmark')->count(),
+            'favorites' => $user->marks()->where('type', 'favorite')->count(),
+        ];
+
+        return view('dashboard', compact('stats'));
+    }
+
+    public function like(Post $post): JsonResponse
     {
         $status = $post->toggleMark('like', auth()->user());
-        return back()->with('success', $status ? 'Liked!' : 'Unliked!');
+        return response()->json(['status' => $status]);
     }
 
-    // 📌 Toggle Favorite
-    public function favorite(Post $post)
+    public function favorite(Post $post): JsonResponse
     {
         $status = $post->toggleMark('favorite', auth()->user());
-        return back()->with('success', $status ? 'Added to favorites' : 'Removed from favorites');
+        return response()->json(['status' => $status]);
     }
 
-    // 📌 Toggle Bookmark
-    public function bookmark(Post $post)
+    public function bookmark(Post $post): JsonResponse
     {
         $status = $post->toggleMark('bookmark', auth()->user());
-        return back()->with('success', $status ? 'Bookmarked' : 'Removed bookmark');
+        return response()->json(['status' => $status]);
     }
-
-    // 📌 Reaction
-    public function react(Request $request, Post $post)
-    {
-        $post->toggleMark(Wow::class, auth()->user());
-
-        return back()->with('success', 'Reaction updated!');
-    }
-
 }
