@@ -3,19 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Post extends Model
 {
-    
     protected $fillable = ['title', 'body'];
 
-    public function marks()
+    public function marks(): HasMany
     {
         return $this->hasMany(Mark::class);
     }
 
-    // ✅ Toggle Mark
-    public function toggleMark($type, $user)
+    public function toggleMark(string $type, $user): bool
     {
         $existing = $this->marks()
             ->where('user_id', $user->id)
@@ -29,14 +28,13 @@ class Post extends Model
 
         $this->marks()->create([
             'user_id' => $user->id,
-            'type' => $type
+            'type'    => $type,
         ]);
 
         return true;
     }
 
-    // ✅ Check if marked
-    public function isMarkedByUser($type, $userId)
+    public function isMarkedByUser(string $type, int $userId): bool
     {
         return $this->marks()
             ->where('type', $type)
